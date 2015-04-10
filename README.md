@@ -9,16 +9,23 @@ them in future runs.
 An example fixture (actually used for such a test) can be found here: 
 [Example fixture](tests/Event/TapeRecorder/fixtures/testLoadExistingTape.yml).
 
-[A new section has been added](https://github.com/jeromegamez/ivory-http-adapter/blob/feature/tape-recorder-subscriber/doc/events.md#tape-recorder) to the documentation explaining how to use the subscriber.
-
 #### Usage
 
 ```php
-use Ivory\HttpAdapter\Event\Subscriber\FixtureSubscriber;
+use Ivory\HttpAdapter\EventDispatcherHttpAdapter;
+use Ivory\HttpAdapter\HttpAdapterFactory;
+use Kreait\Ivory\HttpAdapter\Event\Subscriber\TapeRecorderSubscriber;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 $recorder = new TapeRecorderSubscriber(__DIR__.'/fixtures');
-$httpAdapter->getConfiguration()->getEventDispatcher()
-    ->addSubscriber($recorder);
+
+$eventDispatcher = new EventDispatcher();
+$eventDispatcher->addSubscriber($this->recorder);
+
+$http = new EventDispatcherHttpAdapter(
+    HttpAdapterFactory::guess(),
+    $eventDispatcher
+);       
 
 $recorder->insertTape('my_tape');
 $recorder->startRecording();
@@ -31,16 +38,7 @@ $recorder->eject(); // Stores the tape to the file system
 ##### Recording modes
 
 ```php
-use Ivory\HttpAdapter\Event\Subscriber\FixtureSubscriber;
-
-$recorder = new TapeRecorderSubscriber(__DIR__.'/fixtures');
-$httpAdapter->getConfiguration()->getEventDispatcher()
-    ->addSubscriber($recorder);
-
-$recorder->setRecordingMode(TapeRecorderSubscriber::RECORDING_MODE_OVERWRITE);
-$recorder->setRecordingMode(TapeRecorderSubscriber::RECORDING_MODE_NEVER);
-// Default
-$recorder->setRecordingMode(TapeRecorderSubscriber::RECORDING_MODE_ONCE);
+$recorder->setRecordingMode(...);
 ```
 
 The following recording modes can be set when using the Tape Recorder:
@@ -54,22 +52,33 @@ The following recording modes can be set when using the Tape Recorder:
 ##### Usage example in Unit Tests
 
 ```php
-
 namespace My\Application\Tests;
 
-use Ivory\HttpAdapter\Event\Subscriber\TapeRecorderSubscriber;
+use Ivory\HttpAdapter\EventDispatcherHttpAdapter;
+use Ivory\HttpAdapter\HttpAdapterFactory;
+use Kreait\Ivory\HttpAdapter\Event\Subscriber\TapeRecorderSubscriber;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class MyTest extends extends \PHPUnit_Framework_TestCase
 {
+    /** @var \Ivory\HttpAdapter\HttpAdapterInterface **/
     protected $http;
+    
+    /** @var TapeRecorderSubscriber */
     protected $recorder;
 
     protected function setUp()
     {
-        $this->http = HttpAdapterFactory::guess();
-        $this->recorder = new TapeRecorderSubscriber(__DIR__ . '/fixtures');
-        $this->http->getConfiguration()->getEventDispatcher()
-            ->addSubscriber($this->recorder);
+        $this->recorder = new TapeRecorderSubscriber(__DIR__.'/fixtures');
+
+        $http = HttpAdapterFactory::guess();
+
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addSubscriber($this->recorder);
+
+        $this->http = new EventDispatcherHttpAdapter(
+            $http, $eventDispatcher
+        );
     }
 
     protected function tearDown()
