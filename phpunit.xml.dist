@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<phpunit colors="true" bootstrap="vendor/autoload.php">
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.6/phpunit.xsd"
+        bootstrap="vendor/autoload.php"
+        colors="true">
     <testsuites>
-        <testsuite name="Ivory Http Adapter Test Suite">
-            <directory suffix="Test.php">./tests</directory>
+        <testsuite name="Tape Recorder Subscriber Test Suite">
+            <directory>./tests</directory>
         </testsuite>
     </testsuites>
-    <php>
-        <!-- <server name="TEST_SERVER" value="http://127.0.0.1:10000/server.php" /> -->
-    </php>
     <filter>
         <whitelist>
             <directory>./src</directory>

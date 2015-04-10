@@ -1,20 +1,21 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\Message\RequestInterface;
 
 /**
- * Track matcher
+ * Track matcher.
  *
  * @author Jérôme Gamez <jerome@gamez.name>
  */
@@ -36,9 +37,9 @@ class TrackMatcher
     }
 
     /**
-     * Returns TRUE when the given Track's request matches the given request
+     * Returns TRUE when the given Track's request matches the given request.
      *
-     * @param TrackInterface           $track   The track.
+     * @param TrackInterface   $track   The track.
      * @param RequestInterface $request The request.
      *
      * @return bool TRUE if the Track's request matches the given request, FALSE if not.
@@ -65,13 +66,14 @@ class TrackMatcher
      * @link http://php.net/manual/en/function.array-diff-assoc.php#111675 Reference implementation
      * @codeCoverageIgnore
      *
-     * @param  array $a
-     * @param  array $b
+     * @param array $a
+     * @param array $b
+     *
      * @return array
      */
     private function array_diff_assoc_recursive(array $a, array $b)
     {
-        $difference = array();
+        $difference = [];
         foreach ($a as $key => $value) {
             if (is_array($value)) {
                 if (!isset($b[$key]) || !is_array($b[$key])) {

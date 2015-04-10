@@ -1,22 +1,23 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\Message\RequestInterface;
 use Ivory\HttpAdapter\Message\ResponseInterface;
 
 /**
- * Track
+ * Track.
  *
  * @author Jérôme Gamez <jerome@gamez.name>
  */
@@ -42,73 +43,51 @@ class Track implements TrackInterface
         $this->request = $request;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getRequest()
     {
         return $this->request;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function hasResponse()
     {
         return $this->response !== null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getResponse()
     {
         if (!$this->hasResponse()) {
-            return null;
+            return;
         }
-
-        if ($this->response->hasBody()) {
-            $this->response->getBody()->seek(0, SEEK_SET);
+        if ($body = $this->response->getBody()) {
+            $body->seek(0, SEEK_SET);
         }
 
         return $this->response;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function setResponse(ResponseInterface $response = null)
     {
         $this->response = $response;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function hasException()
     {
         return $this->exception !== null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getException()
     {
         if (!$this->hasException()) {
-            return null;
+            return;
         }
 
-        if ($this->exception->hasResponse() && $this->exception->getResponse()->hasBody()) {
+        if ($this->exception->hasResponse() && $this->exception->getResponse()->getBody()->getSize() !== null) {
             $this->exception->getResponse()->getBody()->seek(0, SEEK_SET);
         }
 
         return $this->exception;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function setException(HttpAdapterException $exception = null)
     {
         $this->exception = $exception;

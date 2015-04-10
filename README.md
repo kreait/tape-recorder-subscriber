@@ -6,9 +6,6 @@ similarly to the [php-vcr](http://php-vcr.github.io) and also uses similar wordi
 With it, it is possible to record the HTTP interactions, e.g. in Unit Tests, store them as Fixture files and replay 
 them in future runs.
 
-A [Pull Request has already been created](https://github.com/egeloen/ivory-http-adapter/pull/69) to integrate the 
-Tape Recorder in the default HTTP Adapter package. In case it gets included, this repository will be deprecated.
-
 An example fixture (actually used for such a test) can be found here: 
 [Example fixture](tests/Event/TapeRecorder/fixtures/testLoadExistingTape.yml).
 
@@ -69,7 +66,7 @@ class MyTest extends extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->http = new CurlHttpAdapter();
+        $this->http = HttpAdapterFactory::guess();
         $this->recorder = new TapeRecorderSubscriber(__DIR__ . '/fixtures');
         $this->http->getConfiguration()->getEventDispatcher()
             ->addSubscriber($this->recorder);

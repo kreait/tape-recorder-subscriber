@@ -1,26 +1,22 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\Tests\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
-use Ivory\HttpAdapter\CurlHttpAdapter;
-use Ivory\HttpAdapter\Event\TapeRecorder\Tape;
-use Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException;
-use Ivory\HttpAdapter\Event\TapeRecorder\Track;
-use Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface;
 use Ivory\HttpAdapter\HttpAdapterException;
+use Ivory\HttpAdapter\HttpAdapterFactory;
 use Ivory\HttpAdapter\Message\MessageFactory;
 use Ivory\HttpAdapter\Message\RequestInterface;
 use Ivory\HttpAdapter\Message\ResponseInterface;
-use Ivory\HttpAdapter\Message\Stream\StringStream;
 
 /**
  * Tape test.
@@ -69,26 +65,32 @@ class TapeTest extends \PHPUnit_Framework_TestCase
     {
         $tape = new Tape($name = 'foo', $path = sys_get_temp_dir().'/'.uniqid());
 
-        $tape->writeTrack($track = $this->createTrack('http://foo.bar'));
+        $tape->writeTrack($track = $this->createTrack('http://foo.bar/'));
         $tape->store();
         $this->assertFileExists($file = sprintf('%s/%s.yml', $path, $name));
 
         // Reload
         $tape->load();
         $this->assertCount(1, $tracks = $tape->getTracks());
-        $this->assertEquals($track, $tracks[0]);
+
+        $check = $tape->getTrackForRequest($track->getRequest());
+        $this->assertInstanceOf('Kreait\Ivory\HttpAdapter\Event\TapeRecorder\Track', $check);
+
+        // Test the non scalar attributes
+        $this->assertEquals((string) $track->getRequest()->getUri(), (string) $check->getRequest()->getUri());
+        $this->assertEquals((string) $track->getResponse()->getBody(), (string) $check->getResponse()->getBody());
 
         @unlink($file);
     }
 
     public function testLoadExistingTape()
     {
-        // $this->prepareFixtureFile(__FUNCTION__); // Only to be used when changing the TapeTest, uncomment before committing
+        $this->prepareFixtureFile(__FUNCTION__); // Only to be used when changing the TapeTest, uncomment before committing
 
         $tape = $this->createTape(__FUNCTION__);
         $this->assertCount(1, $tracks = $tape->getTracks());
         $track = $tracks[0];
-        $this->assertInstanceOf('Ivory\HttpAdapter\Event\TapeRecorder\Track', $track);
+        $this->assertInstanceOf('Kreait\Ivory\HttpAdapter\Event\TapeRecorder\Track', $track);
 
         $this->assertInstanceOf('Ivory\HttpAdapter\Message\RequestInterface', $track->getRequest());
 
@@ -110,15 +112,14 @@ class TapeTest extends \PHPUnit_Framework_TestCase
         $tape = $this->createTape(__FUNCTION__);
         $tape->startRecording($request = $this->createRequest());
 
-        $this->assertTrue($request->hasParameter('track'));
-        $this->assertInstanceOf('Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface', $request->getParameter('track'));
+        $this->assertCount(1, $tape->getTracks());
     }
 
     public function testFinishRecording()
     {
         $tape = $this->createTape(__FUNCTION__);
         $tape->startRecording($request = $this->createRequest());
-        $track = $request->getParameter('track');
+        $track = $tape->getTrackForRequest($request);
 
         $tape->finishRecording($track, $response = $this->createResponse(), $exception = $this->createException());
 
@@ -134,7 +135,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
         $tape = $this->createTape(__FUNCTION__);
         $this->assertFalse($tape->hasTrackForRequest($request = $this->createRequest()));
         $this->assertInstanceOf(
-            'Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface',
+            'Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface',
             $tape->getTrackForRequest($request)
         );
     }
@@ -177,7 +178,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
         $track = $this->createTrackMock($request = $this->createRequest(), $response = $this->createResponse());
 
         try {
-            $tape->replay($track);
+            $tape->play($track);
             $this->fail('TapeRecorderException excepted, none thrown');
         } catch (TapeRecorderException $e) {
             $this->assertSame($response, $e->getResponse());
@@ -195,7 +196,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
         );
 
         try {
-            $tape->replay($track);
+            $tape->play($track);
             $this->fail('HttpAdapterException excepted, none thrown');
         } catch (HttpAdapterException $e) {
             $this->assertSame($exception, $e);
@@ -208,9 +209,10 @@ class TapeTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param  RequestInterface                                $request
-     * @param  ResponseInterface                                       $response
-     * @param  HttpAdapterException                                    $exception
+     * @param RequestInterface     $request
+     * @param ResponseInterface    $response
+     * @param HttpAdapterException $exception
+     *
      * @return TrackInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected function createTrackMock(
@@ -221,7 +223,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
         $request = $request ?: $this->createRequest();
 
         $track = $this
-            ->getMockBuilder('Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface')
+            ->getMockBuilder('Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface')
             ->getMock();
 
         $track->expects($this->any())
@@ -254,9 +256,10 @@ class TapeTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates a track for a request with the given url.
      *
-     * @param  string $requestUrl
-     * @param  bool   $hasResponse
-     * @param  bool   $hasException
+     * @param string $requestUrl
+     * @param bool   $hasResponse
+     * @param bool   $hasException
+     *
      * @return Track
      */
     protected function createTrack($requestUrl, $hasResponse = true, $hasException = false)
@@ -277,16 +280,17 @@ class TapeTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates a request.
      *
-     * @param  null                     $url
-     * @param  TrackInterface           $track
+     * @param null           $url
+     * @param TrackInterface $track
+     *
      * @return RequestInterface
      */
     protected function createRequest($url = null, TrackInterface $track = null)
     {
-        $request = $this->messageFactory->createRequest($url ?: 'http://egeloen.fr/');
+        $request = $this->messageFactory->createRequest($url ?: 'http://httpstat.us/200');
 
         if ($track) {
-            $request->setParameter('track', $track);
+            $request = $request->withParameter('track', $track);
         }
 
         return $request;
@@ -299,7 +303,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
      */
     protected function createResponse()
     {
-        return $this->messageFactory->createResponse(200, 'OK', '1.1', array(), new StringStream(null, 3), array());
+        return $this->messageFactory->createResponse();
     }
 
     protected function createException()
@@ -310,7 +314,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
     private function prepareFixtureFile($methodName)
     {
         $tape = $this->createTape($methodName);
-        $httpAdapter = new CurlHttpAdapter();
+        $httpAdapter = HttpAdapterFactory::guess();
         $request = $httpAdapter->getConfiguration()->getMessageFactory()->createRequest('http://httpstat.us/200');
         $response = $httpAdapter->sendRequest($request);
         $exception = new HttpAdapterException();

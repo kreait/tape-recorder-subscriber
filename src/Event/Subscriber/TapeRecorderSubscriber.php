@@ -1,24 +1,25 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\Subscriber;
+namespace Kreait\Ivory\HttpAdapter\Event\Subscriber;
 
 use Ivory\HttpAdapter\Event\Events;
 use Ivory\HttpAdapter\Event\ExceptionEvent;
-use Ivory\HttpAdapter\Event\TapeRecorder\Tape;
-use Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException;
 use Ivory\HttpAdapter\Event\PostSendEvent;
 use Ivory\HttpAdapter\Event\PreSendEvent;
-use Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface;
 use Ivory\HttpAdapter\HttpAdapterException;
+use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\Tape;
+use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException;
+use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -33,11 +34,11 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     const RECORDING_MODE_OVERWRITE = 2; // Always performs a real request and overwrites the fixture.
     const RECORDING_MODE_NEVER = 3;     // Always performs a real request and does not write a fixture.
 
-    public static $recordingModes = array(
+    public static $recordingModes = [
         self::RECORDING_MODE_ONCE => 'once',
         self::RECORDING_MODE_OVERWRITE => 'overwrite',
-        self::RECORDING_MODE_NEVER => 'never'
-    );
+        self::RECORDING_MODE_NEVER => 'never',
+    ];
 
     /**
      * @var bool
@@ -50,7 +51,7 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     private $path;
 
     /**
-     * The current tape
+     * The current tape.
      *
      * @var Tape
      */
@@ -81,24 +82,19 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
         $this->recordingMode = self::RECORDING_MODE_ONCE;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function getSubscribedEvents()
     {
-        return array(
-            Events::PRE_SEND        => array('onPreSend', 400),
-            Events::POST_SEND       => array('onPostSend', 400),
-            Events::EXCEPTION       => array('onException', 400),
-        );
+        return [
+            Events::PRE_SEND        => ['onPreSend', 400],
+            Events::POST_SEND       => ['onPostSend', 400],
+            Events::EXCEPTION       => ['onException', 400],
+        ];
     }
 
     /**
      * Sets the recording mode.
      *
      * @param int $recordingMode The recording mode.
-     *
-     * @return void No return value.
      */
     public function setRecordingMode($recordingMode)
     {
@@ -113,13 +109,11 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
      * Inserts the tape with the given name.
      *
      * @param $name string The name.
-     *
-     * @return void No return value.
      */
     public function insertTape($name)
     {
         if (isset($this->currentTape)) {
-            throw new \OutOfBoundsException("Another tape is already inserted.");
+            throw new \OutOfBoundsException('Another tape is already inserted.');
         }
 
         $this->currentTape = new Tape($name, $this->path);
@@ -128,7 +122,6 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     /**
      * Ejects the currently inserted tape.
      *
-     * @return void No return value.
      *
      * @codeCoverageIgnore
      */
@@ -146,13 +139,11 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
 
     /**
      * Starts recording.
-     *
-     * @return void No return value.
      */
     public function startRecording()
     {
         if (!$this->currentTape) {
-            throw new \OutOfBoundsException("No tape has been inserted.");
+            throw new \OutOfBoundsException('No tape has been inserted.');
         }
 
         if ($this->recordingMode !== self::RECORDING_MODE_NEVER) {
@@ -163,7 +154,6 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     /**
      * Stops recording.
      *
-     * @return void No return value.
      *
      * @codeCoverageIgnore
      */
@@ -175,7 +165,8 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     /**
      * On pre send event.
      *
-     * @param  PreSendEvent                               $event The pre send event.
+     * @param PreSendEvent $event The pre send event.
+     *
      * @throws TapeRecorderException|HttpAdapterException
      */
     public function onPreSend(PreSendEvent $event)
@@ -190,8 +181,8 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
             && $this->recordingMode !== self::RECORDING_MODE_OVERWRITE
         ) {
             $track = $this->currentTape->getTrackForRequest($request);
-            $request->setParameter('track', $track);
-            $this->currentTape->replay($track);
+            $event->setRequest($request->withParameter('track', $track));
+            $this->currentTape->play($track);
         }
 
         $this->currentTape->startRecording($request);
@@ -228,7 +219,7 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * We arrive here when the request has successfully been intercepted
+     * We arrive here when the request has successfully been intercepted.
      *
      * @param ExceptionEvent $event The exception event.
      */

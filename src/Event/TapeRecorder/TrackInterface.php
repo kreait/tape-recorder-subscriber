@@ -1,22 +1,23 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\Message\RequestInterface;
 use Ivory\HttpAdapter\Message\ResponseInterface;
 
 /**
- * Track
+ * Track.
  *
  * @author Jérôme Gamez <jerome@gamez.name>
  */
@@ -47,8 +48,6 @@ interface TrackInterface
      * Sets the response.
      *
      * @param ResponseInterface $response The response.
-     *
-     * @return void No return value.
      */
     public function setResponse(ResponseInterface $response = null);
 
@@ -70,8 +69,6 @@ interface TrackInterface
      * Sets the exception.
      *
      * @param HttpAdapterException|null $exception The exception.
-     *
-     * @return void No return value.
      */
     public function setException(HttpAdapterException $exception = null);
 }

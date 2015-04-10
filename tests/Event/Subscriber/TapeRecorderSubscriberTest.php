@@ -1,28 +1,28 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\Tests\HttpAdapter\Event\Subscriber;
+namespace Kreait\Ivory\HttpAdapter\Event\Subscriber;
 
 use Ivory\HttpAdapter\Event\Events;
 use Ivory\HttpAdapter\Event\ExceptionEvent;
 use Ivory\HttpAdapter\Event\PostSendEvent;
 use Ivory\HttpAdapter\Event\PreSendEvent;
-use Ivory\HttpAdapter\Event\Subscriber\TapeRecorderSubscriber;
-use Ivory\HttpAdapter\Event\TapeRecorder\Tape;
-use Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException;
-use Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface;
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\HttpAdapterInterface;
 use Ivory\HttpAdapter\Message\InternalRequestInterface;
 use Ivory\HttpAdapter\Message\ResponseInterface;
+use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\Tape;
+use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException;
+use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface;
 
 /**
  * Tape Recorder subscriber test.
@@ -66,13 +66,13 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $events = TapeRecorderSubscriber::getSubscribedEvents();
 
         $this->assertArrayHasKey(Events::PRE_SEND, $events);
-        $this->assertSame(array('onPreSend', 400), $events[Events::PRE_SEND]);
+        $this->assertSame(['onPreSend', 400], $events[Events::PRE_SEND]);
 
         $this->assertArrayHasKey(Events::POST_SEND, $events);
-        $this->assertSame(array('onPostSend', 400), $events[Events::POST_SEND]);
+        $this->assertSame(['onPostSend', 400], $events[Events::POST_SEND]);
 
         $this->assertArrayHasKey(Events::EXCEPTION, $events);
-        $this->assertSame(array('onException', 400), $events[Events::EXCEPTION]);
+        $this->assertSame(['onException', 400], $events[Events::EXCEPTION]);
     }
 
     public function testInitialState()
@@ -163,13 +163,11 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('hasTrackForRequest')
             ->with($request = $this->createRequestMock())
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $tape
             ->expects($this->never())
-            ->method('replay')
-        ;
+            ->method('play');
 
         $this->injectTapeMock($tape);
         $this->subscriber->setRecordingMode(TapeRecorderSubscriber::RECORDING_MODE_OVERWRITE);
@@ -185,19 +183,16 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('hasTrackForRequest')
             ->with($request = $this->createRequestMock())
-            ->willReturn(false)
-        ;
+            ->willReturn(false);
 
         $tape
             ->expects($this->never())
-            ->method('getTrackForRequest')
-        ;
+            ->method('getTrackForRequest');
 
         $tape
             ->expects($this->once())
             ->method('startRecording')
-            ->with($request)
-        ;
+            ->with($request);
 
         $this->injectTapeMock($tape);
 
@@ -213,21 +208,24 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('hasTrackForRequest')
             ->with($request = $this->createRequestMock())
-            ->willReturn(true)
-        ;
+            ->willReturn(true);
 
         $tape
             ->expects($this->once())
             ->method('getTrackForRequest')
             ->with($request)
-            ->willReturn($track = $this->createTrackMock($request))
-        ;
+            ->willReturn($track = $this->createTrackMock($request));
 
         $tape
             ->expects($this->once())
-            ->method('replay')
-            ->with($track)
-        ;
+            ->method('play')
+            ->with($track);
+
+        $request
+            ->expects($this->once())
+            ->method('withParameter')
+            ->with('track', $track)
+            ->willReturn($this->createRequestMockWithTrack($track));
 
         $this->injectTapeMock($tape);
 
@@ -240,8 +238,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $tape = $this->createTapeMock();
         $tape
             ->expects($this->never())
-            ->method('startRecording')
-        ;
+            ->method('startRecording');
 
         $this->subscriber->onPreSend($this->createPreSendEvent(null, $this->createRequestMock()));
     }
@@ -251,8 +248,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $tape = $this->createTapeMock();
         $tape
             ->expects($this->never())
-            ->method('startRecording')
-        ;
+            ->method('startRecording');
 
         $this->subscriber->onPostSend($this->createPostSendEvent(null, $this->createRequestMock()));
     }
@@ -389,14 +385,15 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     protected function createTapeMock()
     {
         return $this
-            ->getMockBuilder('Ivory\HttpAdapter\Event\TapeRecorder\TapeInterface')
+            ->getMockBuilder('Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TapeInterface')
             ->getMock();
     }
 
     /**
-     * @param  InternalRequestInterface                                $request
-     * @param  ResponseInterface                                       $response
-     * @param  HttpAdapterException                                    $exception
+     * @param InternalRequestInterface $request
+     * @param ResponseInterface        $response
+     * @param HttpAdapterException     $exception
+     *
      * @return TrackInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected function createTrackMock(
@@ -407,7 +404,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $request = $request ?: $this->createRequestMock();
 
         $track = $this
-            ->getMockBuilder('Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface')
+            ->getMockBuilder('Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface')
             ->getMock();
 
         $track->expects($this->any())
@@ -438,7 +435,8 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param  TrackInterface                                                    $track
+     * @param TrackInterface $track
+     *
      * @return InternalRequestInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected function createRequestMockWithTrack(TrackInterface $track = null)
@@ -452,7 +450,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->willReturn(true);
 
         $request
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('getParameter')
             ->with('track')
             ->willReturn($track);
@@ -461,9 +459,10 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param  InternalRequestInterface                                       $internalRequest
-     * @param  ResponseInterface                                              $response
-     * @param  HttpAdapterException                                           $httpAdapterException
+     * @param InternalRequestInterface $internalRequest
+     * @param ResponseInterface        $response
+     * @param HttpAdapterException     $httpAdapterException
+     *
      * @return TapeRecorderException|\PHPUnit_Framework_MockObject_MockObject
      */
     protected function createTapeRecorderExceptionMock(
@@ -471,7 +470,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         ResponseInterface $response = null,
         HttpAdapterException $httpAdapterException = null
     ) {
-        $exception = $this->getMock('Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException');
+        $exception = $this->getMock('Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException');
 
         if ($internalRequest === null) {
             $internalRequest = $this->createRequestMock();

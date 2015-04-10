@@ -1,15 +1,16 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\Message\RequestInterface;
@@ -17,7 +18,7 @@ use Ivory\HttpAdapter\Message\ResponseInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Tape
+ * Tape.
  *
  * @author Jérôme Gamez <jerome@gamez.name>
  */
@@ -64,9 +65,6 @@ class Tape implements TapeInterface
         $this->load();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName()
     {
         return $this->name;
@@ -81,34 +79,23 @@ class Tape implements TapeInterface
         return $this->storagePath;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function startRecording(RequestInterface $request)
     {
         $track = new Track($request);
-        $request->setParameter('track', $track);
-
         $this->writeTrack($track);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function replay(TrackInterface $track)
+    public function play(TrackInterface $track)
     {
         if ($track->hasException()) {
-            $this->replayException($track); // throws an HttpAdapterException
+            $this->replayException($track);
         }
 
         if ($track->hasResponse()) {
-            $this->replayResponse($track); // throws a TapeRecorderException
+            $this->replayResponse($track);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function finishRecording(
         TrackInterface $track,
         ResponseInterface $response = null,
@@ -121,29 +108,37 @@ class Tape implements TapeInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Replays the exception of the given track.
+     *
+     * @param TrackInterface $track The track.
+     *
+     * @throws HttpAdapterException The exception to be replayed
      */
-    public function replayException(TrackInterface $track)
+    private function replayException(TrackInterface $track)
     {
         throw $track->getException();
     }
 
     /**
-     * {@inheritdoc}
+     * Replays the response of the given track.
+     *
+     * This is done by throwing a TapeRecorderException, which will trigger the exception event of the
+     * TapeRecorderSubscriber.
+     *
+     * @param TrackInterface $track The track.
+     *
+     * @throws TapeRecorderException The Tape Recorder exception.
      */
-    public function replayResponse(TrackInterface $track)
+    private function replayResponse(TrackInterface $track)
     {
         $e = TapeRecorderException::interceptingRequest();
         $e->setResponse($track->getResponse());
         throw $e;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function writeTrack(TrackInterface $track)
     {
-        $newTracks = array();
+        $newTracks = [];
 
         foreach ($this->tracks as $key => $existing) {
             if (!$this->trackMatcher->matchByRequest($existing, $track->getRequest())) {
@@ -156,20 +151,14 @@ class Tape implements TapeInterface
         $this->tracks = $newTracks;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getTracks()
     {
         return $this->tracks;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function load()
     {
-        $this->tracks = array();
+        $this->tracks = [];
 
         $filePath = $this->getFilePath();
 
@@ -181,13 +170,10 @@ class Tape implements TapeInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function store()
     {
         $filePath = $this->getFilePath();
-        $data = array();
+        $data = [];
         foreach ($this->tracks as $track) {
             $data[] = $this->converter->trackToArray($track);
         }
@@ -195,9 +181,6 @@ class Tape implements TapeInterface
         file_put_contents($filePath, Yaml::dump($data, 4));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function hasTrackForRequest(RequestInterface $request)
     {
         foreach ($this->tracks as $track) {
@@ -209,9 +192,6 @@ class Tape implements TapeInterface
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getTrackForRequest(RequestInterface $request)
     {
         foreach ($this->tracks as $track) {

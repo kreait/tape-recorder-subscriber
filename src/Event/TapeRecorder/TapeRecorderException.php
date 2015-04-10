@@ -1,20 +1,21 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\HttpAdapterException;
 
 /**
- * TapeRecorder Exception
+ * TapeRecorder Exception.
  *
  * A special type of exception which can be used to intercept a request and set the request's
  * response and exception with recorded values
@@ -28,6 +29,6 @@ class TapeRecorderException extends HttpAdapterException
      */
     public static function interceptingRequest()
     {
-        return new static("Intercepting request.");
+        return new static('Intercepting request.');
     }
 }

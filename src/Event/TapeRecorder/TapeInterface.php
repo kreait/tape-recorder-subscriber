@@ -1,15 +1,16 @@
 <?php
 
-/**
- * This file is part of the Ivory Http Adapter package.
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * (c) Eric GELOEN <geloen.eric@gmail.com>
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\Message\RequestInterface;
@@ -33,8 +34,6 @@ interface TapeInterface
      * Starts recording.
      *
      * @param RequestInterface $request The request.
-     *
-     * @return void No return value.
      */
     public function startRecording(RequestInterface $request);
 
@@ -45,10 +44,8 @@ interface TapeInterface
      *
      * @throws HttpAdapterException  When an exception is replayed.
      * @throws TapeRecorderException When a response is replayed.
-     *
-     * @return void No return value.
      */
-    public function replay(TrackInterface $track);
+    public function play(TrackInterface $track);
 
     /**
      * Writes the track to the tape.
@@ -56,39 +53,12 @@ interface TapeInterface
      * @param TrackInterface            $track     The track to write.
      * @param ResponseInterface|null    $response  The response to write into the track.
      * @param HttpAdapterException|null $exception The exception to write into the track.
-     *
-     * @return void No return value.
      */
     public function finishRecording(
         TrackInterface $track,
         ResponseInterface $response = null,
         HttpAdapterException $exception = null
     );
-
-    /**
-     * Replays the exception of the given track.
-     *
-     * @param TrackInterface $track The track.
-     *
-     * @throws HttpAdapterException The exception to be replayed
-     *
-     * @return void No return value.
-     */
-    public function replayException(TrackInterface $track);
-
-    /**
-     * Replays the response of the given track.
-     *
-     * This is done by throwing a TapeRecorderException, which will trigger the exception event of the
-     * TapeRecorderSubscriber.
-     *
-     * @param TrackInterface $track The track.
-     *
-     * @throws TapeRecorderException The Tape Recorder exception.
-     *
-     * @return void No return value.
-     */
-    public function replayResponse(TrackInterface $track);
 
     /**
      * (Over)Writes a track to the current tape.
@@ -124,15 +94,11 @@ interface TapeInterface
 
     /**
      * Loads already existing tracks into the tape.
-     *
-     * @return void No return value.
      */
     public function load();
 
     /**
      * Stores the tape.
-     *
-     * @return void No return value.
      */
     public function store();
 }

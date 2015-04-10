@@ -1,12 +1,16 @@
 <?php
-/**
- * This file is part of the ivory-http-adapter package.
+
+/*
+ * This file is part of the tape-recorder-subscriber package.
  *
- * For the full copyright and license information, please read the LICENSE
- * file that was distributed with this source code.
+ * (c) Jérôme Gamez <jerome@kreait.com>
+ * (c) kreait GmbH <info@kreait.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
  */
 
-namespace Ivory\HttpAdapter\Event\TapeRecorder;
+namespace Kreait\Ivory\HttpAdapter\Event\TapeRecorder;
 
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\Message\InternalRequestInterface;
@@ -29,15 +33,16 @@ class Converter
 
     /**
      * @param TrackInterface $track
+     *
      * @return array
      */
     public function trackToArray(TrackInterface $track)
     {
         $t = clone $track;
 
-        $data = array(
-            'request' => $this->requestToArray($t->getRequest())
-        );
+        $data = [
+            'request' => $this->requestToArray($t->getRequest()),
+        ];
 
         if ($t->hasResponse()) {
             $data['response'] = $this->responseToArray($t->getResponse());
@@ -52,6 +57,7 @@ class Converter
 
     /**
      * @param array $data
+     *
      * @return TrackInterface
      */
     public function arrayToTrack(array $data)
@@ -71,33 +77,34 @@ class Converter
 
     /**
      * @param InternalRequestInterface $request
+     *
      * @return array
      */
     public function internalRequestToArray(InternalRequestInterface $request)
     {
-        $r = $this->messageFactory->cloneInternalRequest($request);
-        $r->removeParameter('track');
+        /** @var InternalRequestInterface $r */
+        $r = $request->withoutParameter('track');
 
-        return array(
-            'url'              => (string) $request->getUrl(),
-            'method'           => $request->getMethod(),
-            'protocol_version' => $request->getProtocolVersion(),
-            'headers'          => $request->getHeaders(),
-            'raw_datas'        => $request->getRawDatas(),
-            'datas'            => $request->getDatas(),
-            'files'            => $request->getFiles(),
-            'parameters'       => $request->getParameters(),
-        );
+        return [
+            'uri'              => (string) $r->getUri(),
+            'method'           => $r->getMethod(),
+            'protocol_version' => $r->getProtocolVersion(),
+            'headers'          => $r->getHeaders(),
+            'datas'            => $r->getDatas(),
+            'files'            => $r->getFiles(),
+            'parameters'       => $r->getParameters(),
+        ];
     }
 
     /**
      * @param array $data
+     *
      * @return InternalRequestInterface
      */
     public function arrayToInternalRequest(array $data)
     {
         return $this->messageFactory->createInternalRequest(
-            $data['url'],
+            $data['uri'],
             $data['method'],
             $data['protocol_version'],
             $data['headers'],
@@ -109,38 +116,33 @@ class Converter
 
     /**
      * @param RequestInterface|InternalRequestInterface $request
+     *
      * @return array
      */
     public function requestToArray(RequestInterface $request)
     {
-        $r = $this->messageFactory->cloneRequest($request);
-        $r->removeParameter('track');
+        /** @var RequestInterface $r */
+        $r = $request->withoutParameter('track');
 
-        $body = null;
-        if ($request instanceof InternalRequestInterface) {
-            $body = $request->getRawDatas();
-        } elseif ($request->hasBody()) {
-            $body = (string) $request->getBody();
-        }
-
-        return array(
-            'url'              => (string) $r->getUrl(),
+        return [
+            'uri'              => (string) $r->getUri(),
             'method'           => $r->getMethod(),
             'protocol_version' => $r->getProtocolVersion(),
             'headers'          => $r->getHeaders(),
-            'body'             => $body,
+            'body'             => (string) $request->getBody(),
             'parameters'       => $r->getParameters(),
-        );
+        ];
     }
 
     /**
      * @param array $data
+     *
      * @return RequestInterface
      */
     public function arrayToRequest(array $data)
     {
         return $this->messageFactory->createRequest(
-            $data['url'],
+            $data['uri'],
             $data['method'],
             $data['protocol_version'],
             $data['headers'],
@@ -153,33 +155,31 @@ class Converter
      * Gets an array from a Response.
      *
      * @param ResponseInterface $response
+     *
      * @return array
      */
     public function responseToArray(ResponseInterface $response)
     {
-        $r = $this->messageFactory->cloneResponse($response);
-
-        return array(
-            'status_code'      => $r->getStatusCode(),
-            'reason_phrase'    => $r->getReasonPhrase(),
-            'protocol_version' => $r->getProtocolVersion(),
-            'headers'          => $r->getHeaders(),
-            'body'             => (string) $r->getBody(),
-            'parameters'       => $r->getParameters(),
-        );
+        return [
+            'status_code'      => $response->getStatusCode(),
+            'protocol_version' => $response->getProtocolVersion(),
+            'headers'          => $response->getHeaders(),
+            'body'             => (string) $response->getBody(),
+            'parameters'       => $response->getParameters(),
+        ];
     }
 
     /**
      * Gets a response from an array.
      *
      * @param array $data
+     *
      * @return ResponseInterface
      */
     public function arrayToResponse(array $data)
     {
         return $this->messageFactory->createResponse(
             $data['status_code'],
-            $data['reason_phrase'],
             $data['protocol_version'],
             $data['headers'],
             $data['body'],
@@ -191,14 +191,15 @@ class Converter
      * Gets an array from an HttpAdapterException.
      *
      * @param HttpAdapterException $exception
+     *
      * @return array
      */
     public function exceptionToArray(HttpAdapterException $exception)
     {
-        $array = array(
+        $array = [
             'code'    => $exception->getCode(),
             'message' => $exception->getMessage(),
-        );
+        ];
 
         if ($exception->hasRequest()) {
             $array['request'] = $this->internalRequestToArray($exception->getRequest());
@@ -215,6 +216,7 @@ class Converter
      * Gets an HttpAdapterException from an array.
      *
      * @param array $data
+     *
      * @return HttpAdapterException
      */
     public function arrayToException(array $data)

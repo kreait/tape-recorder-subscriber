@@ -1,14 +1,14 @@
 -
     request:
-        url: 'http://httpstat.us/200'
+        uri: 'http://httpstat.us/200'
         method: GET
         protocol_version: '1.1'
-        headers: {  }
-        body: null
+        headers:
+            Host: [httpstat.us]
+        body: ''
         parameters: {  }
     response:
         status_code: 200
-        reason_phrase: OK
         protocol_version: '1.1'
         headers:
             Cache-Control: [private]
@@ -18,8 +18,8 @@
             X-AspNetMvc-Version: ['5.1']
             X-AspNet-Version: [4.0.30319]
             X-Powered-By: [ASP.NET]
-            Set-Cookie: [ARRAffinity=2e08d880ca1721cfe5157827e382786a839d9f1c5d76ecf6b4a4e420ecdd9950;Path=/;Domain=httpstat.us]
-            Date: ['Tue, 03 Feb 2015 06:41:11 GMT']
+            Set-Cookie: [ARRAffinity=68f2c4702993bb496bba1369216eee8c05d14edfbe81273760dc3e2f77ca437a;Path=/;Domain=httpstat.us]
+            Date: ['Fri, 10 Apr 2015 22:19:41 GMT']
             Connection: [close]
         body: '200 OK'
         parameters: {  }
@@ -27,18 +27,16 @@
         code: 0
         message: ''
         request:
-            url: 'http://httpstat.us/200'
+            uri: 'http://httpstat.us/200'
             method: GET
             protocol_version: '1.1'
-            headers: {  }
-            raw_datas: ''
+            headers: { Host: [httpstat.us] }
             datas: {  }
             files: {  }
             parameters: {  }
         response:
             status_code: 200
-            reason_phrase: OK
             protocol_version: '1.1'
-            headers: { Cache-Control: [private], Content-Length: ['6'], Content-Type: ['text/plain; charset=utf-8'], Server: [Microsoft-IIS/8.0], X-AspNetMvc-Version: ['5.1'], X-AspNet-Version: [4.0.30319], X-Powered-By: [ASP.NET], Set-Cookie: [ARRAffinity=2e08d880ca1721cfe5157827e382786a839d9f1c5d76ecf6b4a4e420ecdd9950;Path=/;Domain=httpstat.us], Date: ['Tue, 03 Feb 2015 06:41:11 GMT'], Connection: [close] }
+            headers: { Cache-Control: [private], Content-Length: ['6'], Content-Type: ['text/plain; charset=utf-8'], Server: [Microsoft-IIS/8.0], X-AspNetMvc-Version: ['5.1'], X-AspNet-Version: [4.0.30319], X-Powered-By: [ASP.NET], Set-Cookie: [ARRAffinity=68f2c4702993bb496bba1369216eee8c05d14edfbe81273760dc3e2f77ca437a;Path=/;Domain=httpstat.us], Date: ['Fri, 10 Apr 2015 22:19:41 GMT'], Connection: [close] }
             body: '200 OK'
             parameters: {  }
