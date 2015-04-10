@@ -181,7 +181,6 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
             && $this->recordingMode !== self::RECORDING_MODE_OVERWRITE
         ) {
             $track = $this->currentTape->getTrackForRequest($request);
-            $event->setRequest($request->withParameter('track', $track));
             $this->currentTape->play($track);
         }
 
@@ -203,14 +202,12 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
 
         $request = $event->getRequest();
 
-        if (!$request->hasParameter('track')) {
-            // Nothing to do here. Since we are in recording mode, the request should
-            // have a track, but we check nonetheless, it's better to be safe than sorry
+        if (!$this->currentTape->hasTrackForRequest($request)) {
             return;
         }
 
-        /** @var TrackInterface $track */
-        $track = $request->getParameter('track');
+        $track = $this->currentTape->getTrackForRequest($request);
+
         $this->currentTape->finishRecording(
             $track,
             $event->getResponse(),
@@ -232,14 +229,11 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
         $exception = $event->getException();
         $request = $exception->getRequest();
 
-        if (!$request->hasParameter('track')) {
-            // Nothing to do here. Since we are in recording mode, the request should
-            // have a track, but we check nonetheless, it's better to be safe than sorry
+        if (!$this->currentTape->hasTrackForRequest($request)) {
             return;
         }
 
-        /** @var TrackInterface $track */
-        $track = $request->getParameter('track');
+        $track = $this->currentTape->getTrackForRequest($request);
 
         if (!($exception instanceof TapeRecorderException)) {
             // Normal exception, let's store it in the track for the next time
