@@ -85,7 +85,7 @@ class TapeTest extends \PHPUnit_Framework_TestCase
 
     public function testLoadExistingTape()
     {
-        $this->prepareFixtureFile(__FUNCTION__); // Only to be used when changing the TapeTest, uncomment before committing
+        // $this->prepareFixtureFile(__FUNCTION__); // Only to be used when changing the TapeTest, uncomment before committing
 
         $tape = $this->createTape(__FUNCTION__);
         $this->assertCount(1, $tracks = $tape->getTracks());
