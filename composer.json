@@ -14,13 +14,13 @@
         "source": "https://github.com/kreait/tape-recorder-subscriber"
     },
     "require": {
-        "symfony/yaml": "~2.6",
-        "symfony/event-dispatcher": "~2.6"
+        "egeloen/http-adapter": "^0.8.0",
+        "symfony/yaml": "^2.6",
+        "symfony/event-dispatcher": "^2.6"
     },
     "require-dev": {
-        "egeloen/http-adapter": "^0.8.0",
-        "phpunit/phpunit": "~4.6",
-        "fabpot/php-cs-fixer": "~1.6"
+        "phpunit/phpunit": "^4.6",
+        "fabpot/php-cs-fixer": "^1.6"
     },
     "autoload": {
         "psr-4": { "Kreait\\Ivory\\HttpAdapter\\": "src/" }

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+* Update egeloen/http-adapter to 0.8
+
 ## 2.0.2
 
 * Remove dependency on request parameters and handle checks with Tape functions instead.
