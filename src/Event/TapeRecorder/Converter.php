@@ -86,13 +86,13 @@ class Converter
         $r = $request->withoutParameter('track');
 
         return [
-            'uri'              => (string) $r->getUri(),
-            'method'           => $r->getMethod(),
+            'uri' => (string) $r->getUri(),
+            'method' => $r->getMethod(),
             'protocol_version' => $r->getProtocolVersion(),
-            'headers'          => $r->getHeaders(),
-            'datas'            => $r->getDatas(),
-            'files'            => $r->getFiles(),
-            'parameters'       => $r->getParameters(),
+            'headers' => $r->getHeaders(),
+            'datas' => $r->getDatas(),
+            'files' => $r->getFiles(),
+            'parameters' => $r->getParameters(),
         ];
     }
 
@@ -125,12 +125,12 @@ class Converter
         $r = $request->withoutParameter('track');
 
         return [
-            'uri'              => (string) $r->getUri(),
-            'method'           => $r->getMethod(),
+            'uri' => (string) $r->getUri(),
+            'method' => $r->getMethod(),
             'protocol_version' => $r->getProtocolVersion(),
-            'headers'          => $r->getHeaders(),
-            'body'             => (string) $request->getBody(),
-            'parameters'       => $r->getParameters(),
+            'headers' => $r->getHeaders(),
+            'body' => (string) $request->getBody(),
+            'parameters' => $r->getParameters(),
         ];
     }
 
@@ -161,11 +161,11 @@ class Converter
     public function responseToArray(ResponseInterface $response)
     {
         return [
-            'status_code'      => $response->getStatusCode(),
+            'status_code' => $response->getStatusCode(),
             'protocol_version' => $response->getProtocolVersion(),
-            'headers'          => $response->getHeaders(),
-            'body'             => (string) $response->getBody(),
-            'parameters'       => $response->getParameters(),
+            'headers' => $response->getHeaders(),
+            'body' => (string) $response->getBody(),
+            'parameters' => $response->getParameters(),
         ];
     }
 
@@ -197,7 +197,7 @@ class Converter
     public function exceptionToArray(HttpAdapterException $exception)
     {
         $array = [
-            'code'    => $exception->getCode(),
+            'code' => $exception->getCode(),
             'message' => $exception->getMessage(),
         ];
 

@@ -141,7 +141,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
      */
     protected function createRequest($uri = null)
     {
-        $request = $this->messageFactory->createRequest($uri ?: 'http://httpstat.us/200', null, null, [], '{}');
+        $request = $this->messageFactory->createRequest($uri ?: 'http://httpstat.us/200', RequestInterface::METHOD_GET, null, [], '{}');
 
         return $request;
     }
@@ -155,7 +155,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
      */
     protected function createInternalRequest($uri = null)
     {
-        $request = $this->messageFactory->createInternalRequest($uri ?: 'http://httpstat.us/200', null, null, [], ['foo' => 'bar']);
+        $request = $this->messageFactory->createInternalRequest($uri ?: 'http://httpstat.us/200', RequestInterface::METHOD_GET, null, [], ['foo' => 'bar']);
 
         return $request;
     }

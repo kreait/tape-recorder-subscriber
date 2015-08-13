@@ -13,9 +13,9 @@
 namespace Kreait\Ivory\HttpAdapter\Event\Subscriber;
 
 use Ivory\HttpAdapter\Event\Events;
-use Ivory\HttpAdapter\Event\ExceptionEvent;
-use Ivory\HttpAdapter\Event\PostSendEvent;
-use Ivory\HttpAdapter\Event\PreSendEvent;
+use Ivory\HttpAdapter\Event\RequestCreatedEvent;
+use Ivory\HttpAdapter\Event\RequestErroredEvent;
+use Ivory\HttpAdapter\Event\RequestSentEvent;
 use Ivory\HttpAdapter\HttpAdapterException;
 use Ivory\HttpAdapter\HttpAdapterInterface;
 use Ivory\HttpAdapter\Message\InternalRequestInterface;
@@ -65,14 +65,14 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     {
         $events = TapeRecorderSubscriber::getSubscribedEvents();
 
-        $this->assertArrayHasKey(Events::PRE_SEND, $events);
-        $this->assertSame(['onPreSend', 400], $events[Events::PRE_SEND]);
+        $this->assertArrayHasKey(Events::REQUEST_CREATED, $events);
+        $this->assertSame(['onPreSend', 400], $events[Events::REQUEST_CREATED]);
 
-        $this->assertArrayHasKey(Events::POST_SEND, $events);
-        $this->assertSame(['onPostSend', 400], $events[Events::POST_SEND]);
+        $this->assertArrayHasKey(Events::REQUEST_SENT, $events);
+        $this->assertSame(['onPostSend', 400], $events[Events::REQUEST_SENT]);
 
-        $this->assertArrayHasKey(Events::EXCEPTION, $events);
-        $this->assertSame(['onException', 400], $events[Events::EXCEPTION]);
+        $this->assertArrayHasKey(Events::REQUEST_ERRORED, $events);
+        $this->assertSame(['onException', 400], $events[Events::REQUEST_ERRORED]);
     }
 
     public function testInitialState()
@@ -129,17 +129,17 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
 
     public function testSettingRecordingModeToNeverShouldNeverStartRecording()
     {
-        $preSendEvent = $this->createPreSendEventMock();
+        $preSendEvent = $this->createRequestCreatedEventMock();
         $preSendEvent
             ->expects($this->never())
             ->method('getRequest');
 
-        $postSendEvent = $this->createPostSendEventMock();
+        $postSendEvent = $this->createRequestSentEventMock();
         $postSendEvent
             ->expects($this->never())
             ->method('getRequest');
 
-        $exceptionEvent = $this->createExceptionEventMock();
+        $exceptionEvent = $this->createRequestErroredEventMock();
         $exceptionEvent
             ->expects($this->never())
             ->method('getException');
@@ -172,7 +172,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->injectTapeMock($tape);
         $this->subscriber->setRecordingMode(TapeRecorderSubscriber::RECORDING_MODE_OVERWRITE);
         $this->subscriber->startRecording();
-        $this->subscriber->onPreSend($this->createPreSendEvent(null, $request));
+        $this->subscriber->onPreSend($this->createRequestCreatedEvent(null, $request));
     }
 
     public function testPreSendEventWithEmptyTapeShouldStartRecording()
@@ -197,7 +197,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->injectTapeMock($tape);
 
         $this->subscriber->startRecording();
-        $this->subscriber->onPreSend($this->createPreSendEvent(null, $request));
+        $this->subscriber->onPreSend($this->createRequestCreatedEvent(null, $request));
     }
 
     public function testPreSendEventWithExistingTrackShouldReplay()
@@ -224,7 +224,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->injectTapeMock($tape);
 
         $this->subscriber->startRecording();
-        $this->subscriber->onPreSend($this->createPreSendEvent(null, $request));
+        $this->subscriber->onPreSend($this->createRequestCreatedEvent(null, $request));
     }
 
     public function testPreSendEventWithoutStartedRecordingShouldDoNothing()
@@ -234,7 +234,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->expects($this->never())
             ->method('startRecording');
 
-        $this->subscriber->onPreSend($this->createPreSendEvent(null, $this->createRequestMock()));
+        $this->subscriber->onPreSend($this->createRequestCreatedEvent(null, $this->createRequestMock()));
     }
 
     public function testPostSendEventWithoutStartedRecordingShouldDoNothing()
@@ -244,7 +244,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->expects($this->never())
             ->method('startRecording');
 
-        $this->subscriber->onPostSend($this->createPostSendEvent(null, $this->createRequestMock()));
+        $this->subscriber->onPostSend($this->createReuestSentEvent(null, $this->createRequestMock()));
     }
 
     public function testPostSend()
@@ -269,7 +269,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->willReturn($this->createTrackMock($request));
 
         $this->subscriber->startRecording();
-        $this->subscriber->onPostSend($this->createPostSendEvent(null, $request));
+        $this->subscriber->onPostSend($this->createReuestSentEvent(null, $request));
     }
 
     public function testPostSendEventWithARequestThatHasNoAttachedTrackShouldDoNothing()
@@ -288,12 +288,12 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->willReturn(false);
 
         $this->subscriber->startRecording();
-        $this->subscriber->onPostSend($this->createPostSendEvent(null, $request));
+        $this->subscriber->onPostSend($this->createReuestSentEvent(null, $request));
     }
 
     public function testExceptionEventWithoutStartedRecordingShouldDoNothing()
     {
-        $event = $this->createExceptionEvent(null, $exception = $this->createExceptionMock());
+        $event = $this->createRequestErroredEvent(null, $exception = $this->createExceptionMock());
         $exception
             ->expects($this->never())
             ->method('hasRequest');
@@ -317,7 +317,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $this->injectTapeMock();
         $this->subscriber->startRecording();
-        $this->subscriber->onException($this->createExceptionEvent(null, $exception));
+        $this->subscriber->onException($this->createRequestErroredEvent(null, $exception));
     }
 
     public function testExceptionEventWithNormalHttpAdapterExceptionShouldFinishRecording()
@@ -345,7 +345,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->with($track);
 
         $this->subscriber->startRecording();
-        $this->subscriber->onException($this->createExceptionEvent(null, $exception));
+        $this->subscriber->onException($this->createRequestErroredEvent(null, $exception));
     }
 
     public function testExceptionEventWithFullTrackWillReplayTheResponseAndException()
@@ -363,7 +363,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
             ->expects($this->never())
             ->method('finishRecording');
 
-        $event = $this->createExceptionEvent(null, $exception);
+        $event = $this->createRequestErroredEvent(null, $exception);
 
         $this->subscriber->startRecording();
         $this->subscriber->onException($event);
@@ -508,11 +508,11 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return PreSendEvent|\PHPUnit_Framework_MockObject_MockObject
+     * @return RequestCreatedEvent|\PHPUnit_Framework_MockObject_MockObject
      */
-    private function createPreSendEventMock()
+    private function createRequestCreatedEventMock()
     {
-        $event = $this->getMockBuilder('Ivory\HttpAdapter\Event\PreSendEvent')
+        $event = $this->getMockBuilder('Ivory\HttpAdapter\Event\RequestCreatedEvent')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -520,11 +520,11 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return PostSendEvent|\PHPUnit_Framework_MockObject_MockObject
+     * @return RequestSentEvent|\PHPUnit_Framework_MockObject_MockObject
      */
-    private function createPostSendEventMock()
+    private function createRequestSentEventMock()
     {
-        $event = $this->getMockBuilder('Ivory\HttpAdapter\Event\PostSendEvent')
+        $event = $this->getMockBuilder('Ivory\HttpAdapter\Event\RequestSentEvent')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -532,11 +532,11 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return ExceptionEvent|\PHPUnit_Framework_MockObject_MockObject
+     * @return RequestErroredEvent|\PHPUnit_Framework_MockObject_MockObject
      */
-    private function createExceptionEventMock()
+    private function createRequestErroredEventMock()
     {
-        $event = $this->getMockBuilder('Ivory\HttpAdapter\Event\ExceptionEvent')
+        $event = $this->getMockBuilder('Ivory\HttpAdapter\Event\RequestErroredEvent')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -546,7 +546,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates a request mock.
      *
-     * @return \Ivory\HttpAdapter\Message\InternalRequestInterface|\PHPUnit_Framework_MockObject_MockObject The request mock.
+     * @return InternalRequestInterface|\PHPUnit_Framework_MockObject_MockObject The request mock.
      */
     protected function createRequestMock()
     {
@@ -556,7 +556,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates a response mock.
      *
-     * @return \Ivory\HttpAdapter\Message\ResponseInterface|\PHPUnit_Framework_MockObject_MockObject The response mock.
+     * @return ResponseInterface|\PHPUnit_Framework_MockObject_MockObject The response mock.
      */
     protected function createResponseMock()
     {
@@ -566,16 +566,16 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates a pre send event.
      *
-     * @param \Ivory\HttpAdapter\HttpAdapterInterface|null             $httpAdapter The http adapter.
-     * @param \Ivory\HttpAdapter\Message\InternalRequestInterface|null $request     The request.
+     * @param HttpAdapterInterface|null     $httpAdapter The http adapter.
+     * @param InternalRequestInterface|null $request     The request.
      *
-     * @return \Ivory\HttpAdapter\Event\PreSendEvent The pre send event.
+     * @return RequestCreatedEvent The pre send event.
      */
-    protected function createPreSendEvent(
+    protected function createRequestCreatedEvent(
         HttpAdapterInterface $httpAdapter = null,
         InternalRequestInterface $request = null
     ) {
-        return new PreSendEvent(
+        return new RequestCreatedEvent(
             $httpAdapter ?: $this->createHttpAdapterMock(),
             $request ?: $this->createRequestMock()
         );
@@ -584,18 +584,18 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates a post send event.
      *
-     * @param \Ivory\HttpAdapter\HttpAdapterInterface|null             $httpAdapter The http adapter.
-     * @param \Ivory\HttpAdapter\Message\InternalRequestInterface|null $request     The request.
-     * @param \Ivory\HttpAdapter\Message\ResponseInterface|null        $response    The response.
+     * @param HttpAdapterInterface|null     $httpAdapter The http adapter.
+     * @param InternalRequestInterface|null $request     The request.
+     * @param ResponseInterface|null        $response    The response.
      *
-     * @return \Ivory\HttpAdapter\Event\PostSendEvent The post send event.
+     * @return RequestSentEvent The post send event.
      */
-    protected function createPostSendEvent(
+    protected function createReuestSentEvent(
         HttpAdapterInterface $httpAdapter = null,
         InternalRequestInterface $request = null,
         ResponseInterface $response = null
     ) {
-        return new PostSendEvent(
+        return new RequestSentEvent(
             $httpAdapter ?: $this->createHttpAdapterMock(),
             $request ?: $this->createRequestMock(),
             $response ?: $this->createResponseMock()
@@ -605,16 +605,16 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates an exception event.
      *
-     * @param \Ivory\HttpAdapter\HttpAdapterInterface|null $httpAdapter The http adapter.
+     * @param HttpAdapterInterface|null                    $httpAdapter The http adapter.
      * @param \Ivory\HttpAdapter\HttpAdapterException|null $exception   The exception.
      *
-     * @return \Ivory\HttpAdapter\Event\ExceptionEvent The exception event.
+     * @return RequestErroredEvent The exception event.
      */
-    protected function createExceptionEvent(
+    protected function createRequestErroredEvent(
         HttpAdapterInterface $httpAdapter = null,
         HttpAdapterException $exception = null
     ) {
-        return new ExceptionEvent(
+        return new RequestErroredEvent(
             $httpAdapter ?: $this->createHttpAdapterMock(),
             $exception ?: $this->createExceptionMock()
         );
@@ -623,7 +623,7 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates an http adapter mock.
      *
-     * @return \Ivory\HttpAdapter\HttpAdapterInterface|\PHPUnit_Framework_MockObject_MockObject The http adapter mock.
+     * @return HttpAdapterInterface|\PHPUnit_Framework_MockObject_MockObject The http adapter mock.
      */
     protected function createHttpAdapterMock()
     {
@@ -654,8 +654,8 @@ class TapeRecorderSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * Creates an exception mock.
      *
-     * @param \Ivory\HttpAdapter\Message\InternalRequestInterface|null $internalRequest The internal request.
-     * @param \Ivory\HttpAdapter\Message\ResponseInterface|null        $response        The response.
+     * @param InternalRequestInterface|null $internalRequest The internal request.
+     * @param ResponseInterface|null        $response        The response.
      *
      * @return \Ivory\HttpAdapter\HttpAdapterException|\PHPUnit_Framework_MockObject_MockObject The exception mock.
      */

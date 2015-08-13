@@ -13,13 +13,12 @@
 namespace Kreait\Ivory\HttpAdapter\Event\Subscriber;
 
 use Ivory\HttpAdapter\Event\Events;
-use Ivory\HttpAdapter\Event\ExceptionEvent;
-use Ivory\HttpAdapter\Event\PostSendEvent;
-use Ivory\HttpAdapter\Event\PreSendEvent;
+use Ivory\HttpAdapter\Event\RequestCreatedEvent;
+use Ivory\HttpAdapter\Event\RequestErroredEvent;
+use Ivory\HttpAdapter\Event\RequestSentEvent;
 use Ivory\HttpAdapter\HttpAdapterException;
 use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\Tape;
 use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TapeRecorderException;
-use Kreait\Ivory\HttpAdapter\Event\TapeRecorder\TrackInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -85,9 +84,9 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            Events::PRE_SEND        => ['onPreSend', 400],
-            Events::POST_SEND       => ['onPostSend', 400],
-            Events::EXCEPTION       => ['onException', 400],
+            Events::REQUEST_CREATED => ['onPreSend', 400],
+            Events::REQUEST_SENT => ['onPostSend', 400],
+            Events::REQUEST_ERRORED => ['onException', 400],
         ];
     }
 
@@ -165,11 +164,11 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     /**
      * On pre send event.
      *
-     * @param PreSendEvent $event The pre send event.
+     * @param RequestCreatedEvent $event The pre send event.
      *
      * @throws TapeRecorderException|HttpAdapterException
      */
-    public function onPreSend(PreSendEvent $event)
+    public function onPreSend(RequestCreatedEvent $event)
     {
         if (!$this->isRecording) {
             return;
@@ -192,9 +191,9 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
      *
      * We reach this event when the request has not been intercepted.
      *
-     * @param PostSendEvent $event The post send event.
+     * @param RequestSentEvent $event The post send event.
      */
-    public function onPostSend(PostSendEvent $event)
+    public function onPostSend(RequestSentEvent $event)
     {
         if (!$this->isRecording) {
             return;
@@ -218,9 +217,9 @@ class TapeRecorderSubscriber implements EventSubscriberInterface
     /**
      * We arrive here when the request has successfully been intercepted.
      *
-     * @param ExceptionEvent $event The exception event.
+     * @param RequestErroredEvent $event The exception event.
      */
-    public function onException(ExceptionEvent $event)
+    public function onException(RequestErroredEvent $event)
     {
         if (!$this->isRecording) {
             return;
