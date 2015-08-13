@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 3.0 - 2015-08-13
 
 * Update egeloen/http-adapter to 0.8
 
