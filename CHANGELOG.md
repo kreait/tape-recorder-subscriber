@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 3.0.1 - 2015-12-08
 
 * Allow usage of phpunit/phpunit ^5.0
 * Allow usage of symfony/yaml ^3.0
