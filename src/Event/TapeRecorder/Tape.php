@@ -163,7 +163,7 @@ class Tape implements TapeInterface
         $filePath = $this->getFilePath();
 
         if (is_file($filePath) && is_readable($filePath)) {
-            $data = Yaml::parse($filePath);
+            $data = Yaml::parse(file_get_contents($filePath));
             foreach ($data as $item) {
                 $this->writeTrack($this->converter->arrayToTrack($item));
             }

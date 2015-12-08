@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+* Allow usage of phpunit/phpunit ^5.0
+* Allow usage of symfony/yaml ^3.0
+
 ## 3.0 - 2015-08-13
 
 * Update egeloen/http-adapter to 0.8
