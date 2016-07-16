@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+* Allow the usage of the latest egeleon/http-adapter version
+* Pin PHP platform and PHPUnit version in composer.json to be sure to
+  maintain PHP 5.4 compatibility (requirement of the HTTP Adapter package)
+
 ## 3.0.1 - 2015-12-08
 
 * Allow usage of phpunit/phpunit ^5.0
