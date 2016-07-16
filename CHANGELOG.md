@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 3.0.2 - 2016-07-16
 
 * Allow the usage of the latest egeleon/http-adapter version
 * Pin PHP platform and PHPUnit version in composer.json to be sure to
