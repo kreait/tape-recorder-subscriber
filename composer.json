@@ -14,7 +14,7 @@
         "source": "https://github.com/kreait/tape-recorder-subscriber"
     },
     "require": {
-        "egeloen/http-adapter": "^0.8.0",
+        "egeloen/http-adapter": "^0.8|^1.0",
         "symfony/yaml": "^2.6|^3.0",
         "symfony/event-dispatcher": "^2.6|^3.0"
     },
